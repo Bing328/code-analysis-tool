@@ -1,0 +1,93 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+    
+    - name: 🐍 设置Python环境
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    
+    - name: 📦 安装系统依赖
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64
+        # 验证安装
+        x86_64-w64-mingw32-gcc --version
+    
+    - name: 📦 安装Python依赖
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        # 如果有requirements.txt，可以安装其他依赖
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
+    
+    - name: 🔨 构建Windows EXE
+      run: |
+        echo "开始构建Windows可执行文件..."
+        
+        # 构建命令
+        pyinstaller --onefile --console \
+          --name "CodeAuditor" \
+          --clean \
+          --distpath ./dist/windows \
+          --workpath ./build \
+          --specpath ./build \
+          --hidden-import urllib.request \
+          --hidden-import urllib.error \
+          --hidden-import urllib.parse \
+          --hidden-import html \
+          --hidden-import typing \
+          professional__v2.py
+        
+        # 验证构建结果
+        echo "构建完成，检查文件..."
+        file ./dist/windows/CodeAuditor.exe || echo "文件未生成"
+        ls -lh ./dist/windows/
+    
+    - name: 🔍 验证构建结果
+      run: |
+        echo "验证生成的文件..."
+        if [ -f ./dist/windows/CodeAuditor.exe ]; then
+          echo "✅ EXE文件已生成"
+          # 使用file命令检查文件类型
+          file ./dist/windows/CodeAuditor.exe
+          # 显示文件大小
+          ls -lh ./dist/windows/CodeAuditor.exe
+          # 检查是否为PE文件
+          if file ./dist/windows/CodeAuditor.exe | grep -q "PE32"; then
+            echo "✅ 文件是有效的Windows可执行文件"
+          else
+            echo "❌ 文件不是有效的Windows可执行文件"
+            exit 1
+          fi
+        else
+          echo "❌ EXE文件未生成"
+          exit 1
+        fi
+    
+    - name: 📤 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: CodeAuditor-Windows
+        path: |
+          ./dist/windows/CodeAuditor.exe
+          ./dist/windows/
+        if-no-files-found: error
+        retention-days: 7
