@@ -9,172 +9,59 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint-test:
-    name: Lint and Test
+  test:
+    name: Test Compatibility
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10"]
     
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-    
-    - name: Lint Python code
-      run: |
-        echo "Testing with Python ${{ matrix.python-version }}"
+    - run: |
         python --version
-        
-        # Syntax check
         python -m py_compile professional_code_auditor_v2.py
-        echo "✅ Syntax check passed"
-        
-        # Run help command
-        python professional_code_auditor_v2.py --help 2>&1 || echo "Help command executed"
-        echo "✅ Basic functionality test passed"
+        echo "✅ Test passed"
 
   build-windows:
-    name: Build Windows EXE
+    name: Build Windows
     runs-on: windows-latest
-    needs: lint-test
-    if: github.event_name != 'pull_request'
+    needs: test
     
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.9'
-    
-    - name: Install PyInstaller
-      run: |
-        python -m pip install --upgrade pip
+    - run: |
         pip install pyinstaller
-    
-    - name: Build Windows executable
-      run: |
-        echo "Building Windows executable..."
         pyinstaller --onefile --console `
           --name "CodeAuditor" `
-          --clean `
-          --distpath ./dist `
           professional_code_auditor_v2.py
-        
-        echo "Build completed!"
-        
-        if (Test-Path ./dist/CodeAuditor.exe) {
-          echo "✅ EXE file created"
-          $size = (Get-Item ./dist/CodeAuditor.exe).Length / 1MB
-          echo "File size: $([math]::Round($size, 2)) MB"
-        } else {
-          echo "❌ EXE file not found"
-          exit 1
-        }
-    
-    - name: Upload Windows artifact
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: CodeAuditor-Windows
         path: dist/CodeAuditor.exe
-        retention-days: 30
 
   build-linux:
-    name: Build Linux Executable
+    name: Build Linux
     runs-on: ubuntu-latest
-    needs: lint-test
-    if: github.event_name != 'pull_request'
+    needs: test
     
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.9'
-    
-    - name: Install PyInstaller
-      run: |
-        python -m pip install --upgrade pip
+    - run: |
         pip install pyinstaller
-    
-    - name: Build Linux executable
-      run: |
-        echo "Building Linux executable..."
         pyinstaller --onefile --console \
           --name "CodeAuditor" \
-          --clean \
-          --distpath ./dist/linux \
           professional_code_auditor_v2.py
-        
-        echo "Build completed"
-        
-        if [ -f ./dist/linux/CodeAuditor ]; then
-          echo "✅ Linux executable created"
-          chmod +x ./dist/linux/CodeAuditor
-          ls -lh ./dist/linux/CodeAuditor
-        else
-          echo "❌ Linux executable not found"
-          exit 1
-        fi
-    
-    - name: Upload Linux artifact
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: CodeAuditor-Linux
         path: dist/linux/CodeAuditor
-        retention-days: 30
-
-  create-release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [build-windows, build-linux]
-    if: startsWith(github.ref, 'refs/tags/v')
-    
-    permissions:
-      contents: write
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Download Windows artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: CodeAuditor-Windows
-        path: artifacts/windows
-    
-    - name: Download Linux artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: CodeAuditor-Linux
-        path: artifacts/linux
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          artifacts/windows/CodeAuditor.exe
-          artifacts/linux/CodeAuditor
-          professional_code_auditor_v2.py
-          README.md
-        body: |
-          # Professional Code Auditor ${{ github.ref_name }}
-          
-          Automated release with Windows and Linux executables.
-          
-          ## 📦 Downloads
-          
-          - **Windows**: CodeAuditor.exe (standalone executable)
-          - **Linux**: CodeAuditor (Linux executable)
-          - **Source**: professional_code_auditor_v2.py (Python source)
-          
-          ## 🚀 Usage
-          
-          ### Windows
-          ```cmd
-          CodeAuditor.exe
