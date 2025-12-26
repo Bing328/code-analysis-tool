@@ -1,0 +1,97 @@
+name: Multi-Platform Build
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: CodeAuditor-Windows
+            output_name: CodeAuditor.exe
+            pyinstaller_flags: --onefile --console
+          - os: ubuntu-latest
+            artifact_name: CodeAuditor-Linux
+            output_name: CodeAuditor
+            pyinstaller_flags: --onefile --console
+          - os: macos-latest
+            artifact_name: CodeAuditor-macOS
+            output_name: CodeAuditor
+            pyinstaller_flags: --onefile --console
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+    
+    - name: 🔨 Build executable
+      run: |
+        echo "Building for ${{ matrix.os }}..."
+        echo "Current directory: $(pwd)"
+        
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          pyinstaller ${{ matrix.pyinstaller_flags }} \
+            --name "CodeAuditor" \
+            --distpath ./dist/${{ matrix.os }} \
+            professional_code_auditor_v2.py
+        else
+          pyinstaller ${{ matrix.pyinstaller_flags }} \
+            --name "CodeAuditor" \
+            --distpath ./dist/${{ matrix.os }} \
+            professional_code_auditor_v2.py
+        fi
+        
+        echo "Build completed!"
+    
+    - name: 🔍 Verify build
+      run: |
+        echo "Verifying build for ${{ matrix.os }}..."
+        
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          if [ -f "./dist/${{ matrix.os }}/${{ matrix.output_name }}" ]; then
+            echo "✅ Build successful"
+            ls -lh "./dist/${{ matrix.os }}/${{ matrix.output_name }}"
+          else
+            echo "❌ Build failed"
+            exit 1
+          fi
+        else
+          if [ -f "./dist/${{ matrix.os }}/${{ matrix.output_name }}" ]; then
+            echo "✅ Build successful"
+            ls -lh "./dist/${{ matrix.os }}/${{ matrix.output_name }}"
+            file "./dist/${{ matrix.os }}/${{ matrix.output_name }}"
+            # Make executable on Unix systems
+            chmod +x "./dist/${{ matrix.os }}/${{ matrix.output_name }}"
+          else
+            echo "❌ Build failed"
+            exit 1
+          fi
+        fi
+    
+    - name: 📤 Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: ./dist/${{ matrix.os }}/${{ matrix.output_name }}
+        retention-days: 30

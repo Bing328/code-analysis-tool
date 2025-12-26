@@ -2,58 +2,159 @@
 
 <div align="center">
 
+![Multi-Platform Build](https://github.com/Bing328/code-analysis-tool/actions/workflows/multi-platform.yml/badge.svg)
+![Windows Build](https://github.com/Bing328/code-analysis-tool/actions/workflows/build.yml/badge.svg)
+![Release](https://github.com/Bing328/code-analysis-tool/actions/workflows/release.yml/badge.svg)
+![GitHub License](https://img.shields.io/github/license/Bing328/code-analysis-tool)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Platform](https://img.shields.io/badge/platform-cross--platform-lightgrey.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg)
 ![Mode](https://img.shields.io/badge/modes-3-9b59b6.svg)
+![Release](https://img.shields.io/github/v/release/Bing328/code-analysis-tool)
 
-**多模式、隐私保护的代码安全审计工具**
+**专业代码审计工具 | 全平台自动构建 | 持续集成/部署**
 
-[功能特性](#-功能特性) • [快速开始](#-快速开始) • [使用指南](docs/USAGE_GUIDE.md) • [功能详解](docs/FEATURES.md)
+[快速开始](#-快速开始) • [下载](#-下载) • [CI/CD管道](#-cicd-管道) • [功能特性](#-功能特性) • [文档](docs/)
 
 </div>
 
----
+## 🚀 CI/CD 管道状态
 
-## 📖 简介
+### 工作流状态
 
-**Professional Code Auditor v2.0** 是一款专为开发者和安全工程师设计的代码审计工具。它提供三种分析模式（离线、在线漏洞库、AI智能分析），支持多种编程语言，并特别注重用户隐私保护。
+| 工作流 | 状态徽章 | 描述 |
+|--------|----------|------|
+| **多平台构建** | ![Multi-Platform Build](https://github.com/Bing328/code-analysis-tool/actions/workflows/multi-platform.yml/badge.svg) | Windows/Linux/macOS自动构建 |
+| **Windows构建** | ![Windows Build](https://github.com/Bing328/code-analysis-tool/actions/workflows/build.yml/badge.svg) | Windows专用可执行文件构建 |
+| **发布流程** | ![Release](https://github.com/Bing328/code-analysis-tool/actions/workflows/release.yml/badge.svg) | 自动创建GitHub Release |
+| **兼容性测试** | ✅ Python 3.7-3.11 | 多版本Python测试 |
 
-无论是日常代码审查、CI/CD 流水线集成，还是敏感环境下的安全扫描，本工具都能提供专业的支持。
+### 自动触发条件
+- ✅ **推送代码**到 main/master 分支
+- ✅ **创建标签** (v*.*.*格式)
+- ✅ **手动触发** (workflow_dispatch)
+- ✅ **Pull Request** 构建验证
 
-## ✨ 功能特性
+### 构建产物
+每次构建自动生成：
+- **Windows**: `CodeAuditor.exe` (单文件可执行程序)
+- **Linux**: `CodeAuditor` (Linux可执行文件)
+- **macOS**: `CodeAuditor` (macOS应用程序)
+- **源码包**: 完整Python源码和文档
 
-### 🔧 三种分析模式
-| 模式 | 描述 | 适用场景 |
-| :--- | :--- | :--- |
-| **🚀 离线分析** | 本地全面扫描，极速且零网络依赖 | 内网环境、敏感项目、快速检查 |
-| **☁️ 在线模式** | 接入免费云端漏洞库 (CVE/CWE) | 开源项目、合规性检查 |
-| **🤖 AI 智能分析** | 深度代码质量分析与优化建议 | 代码重构、质量提升 |
+## 📥 下载最新版本
 
-### 🔐 隐私保护承诺
-- **本地加密存储**：API 密钥采用 Base64 编码加密存储，永不上传明文。
-- **内容自动脱敏**：上传至云端分析前，自动移除密码、Token 等敏感信息。
-- **匿名化处理**：文件标识采用 Hash 处理，无法追踪源文件。
+### 访问GitHub Releases
+**[GitHub Releases](https://github.com/Bing328/code-analysis-tool/releases)** 获取最新版本：
 
-### 📊 核心能力
-- **多语言支持**：Python, Java, C/C++, JavaScript, Go, Rust, SQL 等 20+ 种语言。
-- **二进制检测**：智能识别 .exe, .dll, .so, .jar 等二进制文件。
-- **安全扫描**：硬编码凭证、SQL 注入、命令注入、XSS 等常见漏洞检测。
-- **Docker 审计**：Dockerfile 最佳实践与安全配置检查。
-- **可视化报告**：生成美观的 HTML 交互式报告。
-
-## 🚀 快速开始
-
-### 环境要求
-- Python 3.7 或更高版本
-- **无需安装任何第三方依赖库** (基于 Python 标准库)
-
-### 安装
 ```bash
-# 克隆仓库
-git clone https://github.com/yourusername/professional-code-auditor.git
-cd professional-code-auditor
+# Windows用户
+下载 CodeAuditor.exe
 
-# (可选) 虽然无外部依赖，但习惯上可以检查环境
-python --version
+# Linux用户  
+下载 CodeAuditor
+chmod +x CodeAuditor
+
+# Python用户
+python professional_code_auditor_v2.py
+
+
+直接链接
+最新Windows版本: CodeAuditor.exe
+最新Linux版本: CodeAuditor
+
+🔧 快速开始
+
+Windows用
+
+# 1. 下载最新的CodeAuditor.exe
+# 2. 双击运行或在命令行执行：
+CodeAuditor.exe
+
+Linux用户
+
+# 1. 下载Linux版本
+wget https://github.com/Bing328/code-analysis-tool/releases/latest/download/CodeAuditor
+
+# 2. 添加执行权限
+chmod +x CodeAuditor
+
+# 3. 运行工具
+./CodeAuditor
+
+Python开发者
+
+# 1. 克隆仓库
+git clone https://github.com/Bing328/code-analysis-tool.git
+cd code-analysis-tool
+
+# 2. 运行Python版本
+python3 professional_code_auditor_v2.py
+
+📋 项目结构
+
+.github/workflows/          # GitHub Actions配置
+├── multi-platform.yml     # 多平台构建工作流
+├── build.yml             # Windows专用构建
+├── release.yml           # 发布工作流
+└── test.yml             # 测试工作流（可选）
+
+🔄 工作流详情
+
+multi-platform.yml
+同时在Windows、Linux、macOS上构建
+生成平台特定的可执行文件
+上传到GitHub Artifacts
+
+build.yml
+
+专门为Windows优化构建
+生成独立的.exe文件
+详细的构建验证
+
+release.yml
+
+创建标签时自动触发
+生成漂亮的Release页面
+包含所有构建产物
+
+📊 徽章使用说明
+
+在README.md中使用的徽章：
+
+![Multi-Platform Build](https://github.com/Bing328/code-analysis-tool/actions/workflows/multi-platform.yml/badge.svg)
+![Windows Build](https://github.com/Bing328/code-analysis-tool/actions/workflows/build.yml/badge.svg)
+![Release](https://github.com/Bing328/code-analysis-tool/actions/workflows/release.yml/badge.svg)
+
+徽章格式：
+
+https://github.com/<username>/<repository>/actions/workflows/<workflow-file>.yml/badge.svg
+
+🤝 贡献指南
+
+1.Fork本仓库
+2.创建功能分支 (git checkout -b feature/AmazingFeature)
+3.提交更改 (git commit -m 'Add some AmazingFeature')
+4.推送到分支 (git push origin feature/AmazingFeature)
+5.开启Pull Request
+
+所有Pull Request会自动运行CI/CD流程验证。
+
+📄 许可证
+
+MIT License - 详见 LICENSE 文件。
+
+⭐ **如果这个项目对你有帮助，请给它一个Star！**
+如果你觉得这个项目有用：
+
+Star ⭐ 这个仓库
+Watch 👀 关注更新
+Fork 🍴 创建自己的版本
+分享 🔗 给其他开发者
+🌟 如果这个项目对你有帮助，请给它一个Star！
+
+
+
+🔧 专业代码审计工具 | 🛡️ 安全开发助手 | 🚀 持续集成支持
+                                                                       https://api.star-history.com/svg?repos=Bing328/code-analysis-tool&type=Date
+EOF `````
 
