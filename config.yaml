@@ -1,0 +1,17 @@
+# config.yaml
+analysis:
+  max_file_size_kb: 1024
+  timeout_seconds: 10
+  ignored_dirs:
+    - venv
+    - node_modules
+    - .git
+  cloud_api:
+    url: ${API_URL}
+    retry_times: 3
+scoring:
+  thresholds:
+    s: 95
+    a: 85
+    b: 75
+    c: 60

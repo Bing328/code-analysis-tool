@@ -1,0 +1,17 @@
+# 审计报告文件
+Code_Audit_Report_*.html
+*.log
+audit_results.json
+
+# Python 缓存与字节码
+__pycache__/
+*.py[cod]
+*.class
+
+# 配置文件
+# 如果你以后在 gemini-config.json 中存放真实的 API Key，请取消下面一行的注释
+# gemini-config.json
+
+# 系统文件
+.DS_Store
+Thumbs.db
