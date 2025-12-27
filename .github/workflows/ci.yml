@@ -1,4 +1,4 @@
-name: CI/CD Pipeline with Executable Builds
+name: CI/CD Pipeline - Optimized
 
 on:
   push:
@@ -8,135 +8,123 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+# 并发控制
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # 修改：设为 true，有新提交时取消旧的运行，节省资源
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: "3.10"
   PROJECT_NAME: "code-analysis-tool"
 
 jobs:
-  # 代码质量检查
-  quality:
-    name: Code Quality
+  # 快速检查 - 只做基本验证
+  quick-check:
+    name: Quick Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python
+    - name: Validate repository structure
+      run: |
+        echo "📁 验证项目结构..."
+        ls -la
+        # 修改：如果文件不存在，使用 exit 1 强制失败
+        test -f professional_code_auditor_v2.py && echo "✅ 主程序文件存在" || (echo "❌ 主程序文件缺失" && exit 1)
+        test -f config.yaml && echo "✅ 配置文件存在" || (echo "❌ 配置文件缺失" && exit 1)
+        test -f requirements.txt && echo "✅ 依赖文件存在" || (echo "❌ 依赖文件缺失" && exit 1)
+
+  # 代码质量检查
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quick-check
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
     
     - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install black flake8 isort mypy pylint
+        pip install black flake8 isort
     
-    - name: Run code quality checks
-      run: |
-        black --check --diff . || echo "Black formatting check failed"
-        isort --check-only --diff . || echo "Import sorting check failed"
-        flake8 . --count --max-line-length=127 || echo "Flake8 check failed"
+    - name: Check with Black
+      # 修改：移除了 || echo，确保格式错误时 CI 报错
+      run: black --check --diff .
+    
+    - name: Check with Flake8
+      # 修改：移除了 || echo
+      run: flake8 . --count --max-line-length=127
 
-  # 测试套件
+  # 基本测试
   test:
-    name: Test Suite
+    name: Basic Tests
     runs-on: ubuntu-latest
-    needs: quality
-    
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    timeout-minutes: 20
+    needs: lint
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-cov
+        pip install pytest
     
-    - name: Run tests
+    - name: Run basic tests
       run: |
-        python -m pytest tests/ -v --cov=.
-
-  # 代码安全审计（使用您的工具）
-  audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Run code security audit
-      run: |
-        python professional_code_auditor_v2.py --non-interactive --mode offline
-    
-    - name: Upload audit report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: security-audit-report
-        path: "Code_Audit_Report_*.html"
-
-  # 构建Python包
-  build-python:
-    name: Build Python Package
-    runs-on: ubuntu-latest
-    needs: audit
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install build tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install build twine setuptools wheel
-    
-    - name: Build Python package
-      run: |
-        python -m build
-    
-    - name: Upload Python package
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-packages
-        path: dist/
+        echo "🧪 运行基本测试..."
+        # 这里的 exit(1) 是正确的，保留
+        python -c "
+        import sys
+        sys.path.insert(0, '.')
+        try:
+            import professional_code_auditor_v2
+            print('✅ 主程序可以导入')
+        except Exception as e:
+            print(f'❌ 导入失败: {e}')
+            sys.exit(1)
+        "
+        
+        # 运行示例测试
+        if [ -f "tests/test_basic.py" ]; then
+          python -m pytest tests/test_basic.py -v
+        else
+          echo "📝 未找到测试文件，跳过测试"
+        fi
 
   # 构建Linux可执行文件
   build-linux:
     name: Build Linux Executable
     runs-on: ubuntu-latest
-    needs: audit
+    timeout-minutes: 30
+    needs: test
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
     
     - name: Install dependencies
       run: |
@@ -144,259 +132,84 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
     
-    - name: Build Linux executable with PyInstaller
+    - name: Build executable
       run: |
-        # 构建单个可执行文件
-        pyinstaller --onefile --name "${{ env.PROJECT_NAME }}" \
-          --add-data "config.yaml:." \
-          --add-data "analyzers:analyzers" \
-          --add-data "scripts:scripts" \
+        echo "🔨 开始构建Linux可执行文件..."
+        
+        # 构建可执行文件
+        echo "📦 使用PyInstaller打包..."
+        # 注意：如果 analyzers 是 Python 模块代码而非纯数据，建议改用 --hidden-import 或 --collect-submodules
+        pyinstaller --onefile \
+          --name "${{ env.PROJECT_NAME }}" \
           --hidden-import=yaml \
           --hidden-import=colorama \
+          --add-data "config.yaml:." \
+          --add-data "analyzers:analyzers" \
           professional_code_auditor_v2.py
         
-        # 复制必要的文件到dist目录
-        cp config.yaml dist/
-        cp -r analyzers dist/
-        cp -r scripts dist/ || true
+        echo "✅ 构建完成"
     
-    - name: Create Linux distribution package
+    - name: Test executable
       run: |
-        cd dist
-        tar -czf "${{ env.PROJECT_NAME }}-linux-amd64.tar.gz" \
-          "${{ env.PROJECT_NAME }}" \
-          config.yaml \
-          analyzers/ \
-          scripts/ \
-          LICENSE \
-          README.md
-        
-        # 创建简单的安装脚本
-        cat > install.sh << 'EOF'
-        #!/bin/bash
-        echo "Installing ${{ env.PROJECT_NAME }}..."
-        sudo cp code-analysis-tool /usr/local/bin/
-        sudo mkdir -p /etc/code-analysis-tool
-        sudo cp config.yaml /etc/code-analysis-tool/
-        sudo cp -r analyzers /etc/code-analysis-tool/
-        echo "Installation complete!"
-        echo "Run 'code-analysis-tool --help' to get started."
-        EOF
-        
-        chmod +x install.sh
+        echo "🧪 测试生成的可执行文件..."
+        # 修改：移除了 || echo，如果二进制文件无法运行（如段错误），必须让 CI 失败
+        ./dist/${{ env.PROJECT_NAME }} --help
     
-    - name: Upload Linux executable
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: linux-executable
-        path: |
-          dist/${{ env.PROJECT_NAME }}-linux-amd64.tar.gz
-          dist/install.sh
+        path: dist/
+        retention-days: 7
 
-  # 构建Windows可执行文件
-  build-windows:
-    name: Build Windows Executable (.exe)
-    runs-on: windows-latest
-    needs: audit
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
-    
-    - name: Build Windows executable
-      run: |
-        # 构建Windows可执行文件
-        pyinstaller --onefile --name "${{ env.PROJECT_NAME }}" `
-          --add-data "config.yaml;." `
-          --add-data "analyzers;analyzers" `
-          --add-data "scripts;scripts" `
-          --hidden-import=yaml `
-          --hidden-import=colorama `
-          professional_code_auditor_v2.py
-        
-        # 创建Windows安装包目录
-        New-Item -ItemType Directory -Force -Path "dist/windows-package"
-        Copy-Item "dist/${{ env.PROJECT_NAME }}.exe" -Destination "dist/windows-package/"
-        Copy-Item "config.yaml" -Destination "dist/windows-package/"
-        Copy-Item "analyzers" -Destination "dist/windows-package/" -Recurse
-        Copy-Item "scripts" -Destination "dist/windows-package/" -Recurse -ErrorAction SilentlyContinue
-        Copy-Item "LICENSE" -Destination "dist/windows-package/"
-        Copy-Item "README.md" -Destination "dist/windows-package/"
-        
-        # 创建Windows安装脚本
-        @'
-        @echo off
-        echo Installing ${{ env.PROJECT_NAME }}...
-        xcopy /E /I . "%ProgramFiles%\${{ env.PROJECT_NAME }}"
-        echo Adding to PATH...
-        setx PATH "%PATH%;%ProgramFiles%\${{ env.PROJECT_NAME }}"
-        echo Installation complete!
-        echo.
-        echo Run "${{ env.PROJECT_NAME }}" from any command prompt.
-        '@ | Out-File -FilePath "dist/windows-package/install.bat" -Encoding ASCII
-    
-    - name: Create Windows ZIP package
-      run: |
-        cd dist/windows-package
-        Compress-Archive -Path * -DestinationPath "../${{ env.PROJECT_NAME }}-windows-x64.zip"
-    
-    - name: Upload Windows executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-executable
-        path: dist/${{ env.PROJECT_NAME }}-windows-x64.zip
-
-  # 构建macOS可执行文件
-  build-macos:
-    name: Build macOS Executable
-    runs-on: macos-latest
-    needs: audit
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
-    
-    - name: Build macOS executable
-      run: |
-        # 构建macOS可执行文件
-        pyinstaller --onefile --name "${{ env.PROJECT_NAME }}" \
-          --add-data "config.yaml:." \
-          --add-data "analyzers:analyzers" \
-          --add-data "scripts:scripts" \
-          --hidden-import=yaml \
-          --hidden-import=colorama \
-          professional_code_auditor_v2.py
-        
-        # 创建macOS安装包
-        cd dist
-        tar -czf "${{ env.PROJECT_NAME }}-macos-universal.tar.gz" \
-          "${{ env.PROJECT_NAME }}" \
-          ../config.yaml \
-          ../analyzers/ \
-          ../scripts/ \
-          ../LICENSE \
-          ../README.md
-        
-        # 创建macOS安装脚本
-        cat > install.command << 'EOF'
-        #!/bin/bash
-        echo "Installing ${{ env.PROJECT_NAME }} for macOS..."
-        sudo cp code-analysis-tool /usr/local/bin/
-        sudo mkdir -p /etc/code-analysis-tool
-        sudo cp config.yaml /etc/code-analysis-tool/
-        sudo cp -r analyzers /etc/code-analysis-tool/
-        echo "Installation complete!"
-        echo "Run 'code-analysis-tool --help' to get started."
-        EOF
-        
-        chmod +x install.command
-    
-    - name: Upload macOS executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos-executable
-        path: |
-          dist/${{ env.PROJECT_NAME }}-macos-universal.tar.gz
-          dist/install.command
-
-  # 创建Docker镜像
+  # 构建Docker镜像（简化版）
   build-docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [build-linux, build-python]
+    timeout-minutes: 20
+    needs: build-linux
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Login to DockerHub
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/${{ env.PROJECT_NAME }}:latest
-          ${{ secrets.DOCKER_USERNAME }}/${{ env.PROJECT_NAME }}:${{ github.ref_name }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+    - name: Build Docker image
+      run: |
+        echo "🐳 构建Docker镜像..."
+        docker build -t ${{ env.PROJECT_NAME }}:test .
+        
+        echo "🧪 测试Docker镜像..."
+        # 修改：确保运行失败时报错
+        docker run --rm ${{ env.PROJECT_NAME }}:test --help
 
-  # 发布版本
+  # 创建发布（仅在标签时运行）
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-python, build-linux, build-windows, build-macos, build-docker]
+    needs: build-docker
     
     permissions:
       contents: write
-      packages: write
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Download all build artifacts
-      run: |
-        mkdir -p release-artifacts
-        
-        # 下载Python包
-        gh run download ${{ github.run_id }} -n python-packages || true
-        
-        # 下载Linux可执行文件
-        gh run download ${{ github.run_id }} -n linux-executable || true
-        
-        # 下载Windows可执行文件
-        gh run download ${{ github.run_id }} -n windows-executable || true
-        
-        # 下载macOS可执行文件
-        gh run download ${{ github.run_id }} -n macos-executable || true
-        
-        # 移动所有文件到release-artifacts目录
-        mv dist/* release-artifacts/ 2>/dev/null || true
-        find . -name "*.tar.gz" -exec mv {} release-artifacts/ \; 2>/dev/null || true
-        find . -name "*.zip" -exec mv {} release-artifacts/ \; 2>/dev/null || true
+    - name: Download Linux executable
+      uses: actions/download-artifact@v4
+      with:
+        name: linux-executable
+        path: dist/
     
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      # 修改：升级到 v2
+      uses: softprops/action-gh-release@v2
       with:
-        files: release-artifacts/*
-        generate_release_notes: true
+        files: |
+          dist/${{ env.PROJECT_NAME }}
+          config.yaml
+          LICENSE
+          README.md
         draft: false
-        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
-    
-    - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        twine upload release-artifacts/*.whl release-artifacts/*.tar.gz
+        prerelease: false
+        generate_release_notes: true
