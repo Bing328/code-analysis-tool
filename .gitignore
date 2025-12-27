@@ -22,83 +22,58 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-*.spec
-
-# 项目特定
-Code_Audit_Report_*.html
-*.exe
-codeauditor*
-output/
-reports/
-logs/
-temp/
-tmp/
-
-# 环境文件
-.env
-.venv
-env/
+# Virtual Environments
 venv/
-ENV/
-env.bak/
-venv.bak/
+env/
+.venv/
+venv*/
+env*/
+.venv*/
 
-# 编辑器文件
+# Reports and outputs
+*.html
+*.pdf
+*.log
+*.out
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# 系统文件
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# 大文件
-*.zip
-*.tar.gz
-*.7z
-*.dmg
-*.iso
+# Project specific
+reports/
+output/
+temp/
+tmp/
+*.tmp
+*.temp
+*.db
+*.sqlite3
 
-# 备份文件
-*.bak
-*.backup
+# Logs
+logs/
+*.log
 
-# 测试文件
+# Coverage
 .coverage
-.tox/
-.nox/
+htmlcov/
+.coverage.*
 .cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
+
+# Testing
 .pytest_cache/
-
-# 可选忽略（如果包含敏感信息）
-# gemini-config.json
-# config.yaml
-.github/workflows/backup/
-
-# 环境文件和密码
-.env
-*.env.local
-secrets/
-passwords.txt
-credentials/
-
-# 监控堆栈数据
-monitor-stack/
-
-# 环境文件和密码
-.env
-*.env.*
-secrets/
-credentials/
-passwords.txt
-
-# 监控堆栈数据
-monitor-stack/
-monitor-stack.backup.*
+.mypy_cache/
+.tox/
+.hypothesis/

@@ -189,7 +189,7 @@ def find_code_files(directory="."):
 
 def generate_report(files_data):
     """生成详细报告"""
-    print(f"=== 代码分析报告 ===")
+    print("=== 代码分析报告 ===")
     print(f"📊 分析文件数量: {len(files_data)}")
     print("=" * 60)
 
@@ -239,7 +239,7 @@ def generate_report(files_data):
             f"  {lang}: {stats['count']} 文件, {stats['lines']} 行, {stats['size']} bytes"
         )
 
-    print(f"\n=== 总体统计 ===")
+    print("\n=== 总体统计 ===")
     print(f"📈 总文件数: {total_files}")
     print(f"📈 总代码行数: {total_lines}")
     print(f"📈 总大小: {total_size} bytes")

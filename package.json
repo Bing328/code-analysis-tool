@@ -1,9 +1,0 @@
-{
-  "name": "code-analysis-project",
-  "version": "1.0.0",
-  "description": "使用Gemini进行代码分析的项目",
-  "scripts": {
-    "analyze": "gemini analyze src/",
-    "docs": "gemini generate-docs"
-  }
-}

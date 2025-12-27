@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/targets/node_exporter.json
+        refresh_interval: 1m
