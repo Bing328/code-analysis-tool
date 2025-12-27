@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业代码审计报告 v2.0</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --binary-color: #e67e22;
+            --ai-color: #9b59b6;
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .mode-badge {
+            background: #3498db20;
+            color: #3498db;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        .project-score {
+            font-size: 4em;
+            color: #3498db;
+            margin: 0;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            background: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .stat-box.binary { border-left-color: var(--binary-color); background: #fff5f5; }
+        .stat-box.security { border-left-color: var(--danger-color); background: #fff5f5; }
+        .stat-box.quality { border-left-color: var(--warning-color); background: #fff8e1; }
+        .stat-box.ai { border-left-color: var(--ai-color); background: #f5f3ff; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .binary-row {
+            background-color: #fff8e1 !important;
+        }
+        
+        .score-badge {
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .privacy-note {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-section">
+            <div>
+                <h1>🔍 专业代码审计报告 v2.0</h1>
+                <p><strong>📁 目标路径:</strong> /root/code-analysis-tool</p>
+                <p><strong>⏰ 生成时间:</strong> 2025-12-27 15:14:11 | <strong>耗时:</strong> 0.40秒</p>
+                <p><strong>🔧 分析模式:</strong> 本地全面扫描，不依赖网络 <span class="mode-badge">OFFLINE</span></p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div class="project-score">A</div>
+                <div style="color: #7f8c8d; margin-top: -5px;">优秀</div>
+                <div style="color: #95a5a6; font-size: 0.9em;">平均分: 90</div>
+            </div>
+        </div>
+        
+        
+        
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div style="font-size: 1.5em; font-weight: bold; color: #3498db;">6</div>
+                <div>源代码文件</div>
+            </div>
+            <div class="stat-box">
+                <div style="font-size: 1.5em; font-weight: bold; color: #9b59b6;">8</div>
+                <div>配置文件</div>
+            </div>
+            <div class="stat-box">
+                <div style="font-size: 1.5em; font-weight: bold; color: #1abc9c;">2</div>
+                <div>Docker文件</div>
+            </div>
+            <div class="stat-box binary">
+                <div style="font-size: 1.5em; font-weight: bold; color: #e67e22;">0</div>
+                <div>二进制文件</div>
+            </div>
+            <div class="stat-box security">
+                <div style="font-size: 1.5em; font-weight: bold; color: #e74c3c;">0</div>
+                <div>安全问题</div>
+            </div>
+            <div class="stat-box quality">
+                <div style="font-size: 1.5em; font-weight: bold; color: #f1c40f;">0</div>
+                <div>质量建议</div>
+            </div>
+            
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>文件类型</th>
+                    <th width="100">评分</th>
+                    <th width="300">文件路径</th>
+                    <th>分析结果</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SCRIPT</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>setup_monitor_v2.sh</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SCRIPT</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>check_github_status.sh</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SCRIPT</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>clean_project.sh</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SOURCE</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>cleanup.py</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SCRIPT</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>push_github.sh</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SOURCE</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>setup.py</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCUMENT</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>ips.txt</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCUMENT</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>Code_Audit_Report_20251227_143325.html</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCUMENT</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>USAGE_GUIDE.md</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>config.yaml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCUMENT</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>Code_Audit_Report_20251227_143253.html</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCUMENT</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>requirements.txt</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>package.json</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCUMENT</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>README.md</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>.github/workflows/ci.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCKER</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>monitor-stack/docker-compose.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>monitor-stack/alertmanager/alertmanager.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>monitor-stack/grafana/provisioning/datasources/datasource.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>monitor-stack/prometheus/prometheus.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>monitor-stack/prometheus/targets/node_exporter.json</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    CONFIG</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (85)</div></td>
+                <td><code>monitor-stack/prometheus/rules/node_rules.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SCRIPT</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>scripts/manage_project.sh</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    DOCKER</span></td>
+                <td align="center"><div class="score-badge" style="background:#3498db">
+                    A (90)</div></td>
+                <td><code>monitor-stack.backup.20251227_150251/docker-compose.yml</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SOURCE</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>src/example.js</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SOURCE</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>src/example.py</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SOURCE</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>analyzers/enhanced_analyzer.py</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            <tr class="">
+                <td><span class="file-type" style="background:#6B728020; color:#6B7280">
+                    SOURCE</span></td>
+                <td align="center"><div class="score-badge" style="background:#2ecc71">
+                    S (95)</div></td>
+                <td><code>analyzers/final_local_analyzer.py</code></td>
+                <td>✅ 检查通过，未发现问题</td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.9em; color: #7f8c8d;">
+            <p><strong>📋 报告说明:</strong></p>
+            <p>💡 <strong>建议:</strong> 项目代码质量优秀，继续保持</p>
+            <p style="margin-top: 10px;">
+                📱 <strong>离线模式:</strong> 本地分析，不依赖网络，适合敏感环境。
+            </p>
+        </div>
+    </div>
+</body>
+</html>

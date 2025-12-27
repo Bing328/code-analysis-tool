@@ -1,3 +1,23 @@
-# 代码审计工具依赖
-# 标准库依赖通常不需要列出
-# 如果有第三方依赖，在这里添加
+# 核心依赖
+pyyaml>=6.0
+requests>=2.28.0
+colorama>=0.4.6
+
+# 代码分析相关
+bandit>=1.7.5
+safety>=2.3.5
+pylint>=2.17.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+isort>=5.12.0
+
+# 可执行文件构建
+pyinstaller>=5.13.0
+
+# Docker/Prometheus
+docker>=6.1.0
+prometheus-client>=0.17.0
+
+# 其他
+python-dotenv>=1.0.0

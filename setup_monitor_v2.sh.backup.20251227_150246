@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ===== 配置参数 =====
+# 监控组件配置（密码必须通过环境变量设置）
+if [[ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]]; then
+    echo "❌ 错误：必须设置 GRAFANA_ADMIN_PASSWORD 环境变量"
+    echo ""
+    echo "请使用以下方式之一运行："
+    echo ""
+    echo "方法1：设置环境变量"
+    echo "    export GRAFANA_ADMIN_PASSWORD=\"your_secure_password\""
+    echo "    sudo ./setup_monitor_v2.sh"
+    echo ""
+    echo "方法2：直接传递环境变量"
+    echo "    sudo GRAFANA_ADMIN_PASSWORD=\"your_secure_password\" ./setup_monitor_v2.sh"
+    echo ""
+    exit 1
+fi
+
+NODE_EXPORTER_VERSION="${NODE_EXPORTER_VERSION:-1.8.2}"
+
+# 远程部署配置
+IPS_FILE="${IPS_FILE:-ips.txt}"
+SSH_USER="${SSH_USER:-root}"        # 默认SSH用户，可修改为普通用户 (如 ubuntu)
+SSH_PORT="${SSH_PORT:-22}"          # SSH端口
+
+# ===== 0) 运行环境检查 =====
+if [[ $EUID -ne 0 ]]; then
+   echo "❌ 本脚本需要 root 权限运行 (用于配置本地Docker和防火墙)" 
+   echo "请使用: sudo $0"
+   exit 1
+fi
+
+check_dependencies() {
+    local deps=("docker" "curl" "ssh" "scp" "jq")
+    local missing=()
+    
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" >/dev/null 2>&1; then
+            missing+=("$dep")
+        fi
+    done
+    
+    # 检查 docker compose (兼容 v1 和 v2)
+    if ! command -v docker-compose >/dev/null 2>&1 && ! docker compose version >/dev/null 2>&1; then
+        missing+=("docker compose")
+    fi
+    
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "❌ 缺少必要依赖: ${missing[*]}"
+        echo "请先安装这些工具: apt-get install docker.io curl openssh-client jq"
+        exit 1
+    fi
+}
+check_dependencies
+
+# ===== 1) 准备目录与备份 =====
+BASE_DIR="monitor-stack"
+
+if [[ -d "$BASE_DIR" ]]; then
+    BACKUP_NAME="${BASE_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
+    echo "📦 检测到旧配置，备份至: $BACKUP_NAME"
+    cp -r "$BASE_DIR" "$BACKUP_NAME"
+fi
+
+echo "📁 创建目录结构..."
+mkdir -p "$BASE_DIR"/{prometheus/{rules,targets},alertmanager,grafana/provisioning/{datasources,dashboards}}
+
+# !!! 关键改进：修复 Prometheus 容器(UID 65534)的写入权限问题 !!!
+# Prometheus 和 Alertmanager 容器默认以 nobody 用户运行
+echo "🔒 修正数据目录权限..."
+chown -R 65534:65534 "$BASE_DIR/prometheus"
+chown -R 65534:65534 "$BASE_DIR/alertmanager"
+
+cd "$BASE_DIR"
+
+# ===== 2) 生成 docker-compose.yml =====
+cat > docker-compose.yml <<EOF
+version: "3.8"
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    user: "65534:65534"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-admin-api"
+      - "--web.enable-lifecycle"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    user: "65534:65534"
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+      - alertmanager-data:/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    user: "472:472"
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:

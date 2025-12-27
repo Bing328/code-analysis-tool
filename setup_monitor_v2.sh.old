@@ -1,7 +1,8 @@
-#!/usr/bin/env bash
+# 找到第6行，将其替换为上面的内容#!/usr/bin/env bash
 set -euo pipefail
 
 # ===== 配置参数 =====
+# 监控组件配置
 # 监控组件配置（密码必须通过环境变量设置）
 if [[ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]]; then
     echo "❌ 错误：必须设置 GRAFANA_ADMIN_PASSWORD 环境变量"
@@ -17,7 +18,6 @@ if [[ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]]; then
     echo ""
     exit 1
 fi
-
 NODE_EXPORTER_VERSION="${NODE_EXPORTER_VERSION:-1.8.2}"
 
 # 远程部署配置
@@ -76,7 +76,7 @@ chown -R 65534:65534 "$BASE_DIR/alertmanager"
 cd "$BASE_DIR"
 
 # ===== 2) 生成 docker-compose.yml =====
-cat > docker-compose.yml << 'DOCKER_COMPOSE_EOF'
+cat > docker-compose.yml <<EOF
 version: "3.8"
 services:
   prometheus:
@@ -142,11 +142,11 @@ volumes:
   prometheus-data:
   alertmanager-data:
   grafana-data:
-DOCKER_COMPOSE_EOF
+EOF
 
 # ===== 3) 生成配置文件 =====
 # Prometheus 配置
-cat > prometheus/prometheus.yml << 'PROMETHEUS_EOF'
+cat > prometheus/prometheus.yml <<EOF
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -160,10 +160,10 @@ scrape_configs:
       - files:
           - /etc/prometheus/targets/node_exporter.json
         refresh_interval: 1m
-PROMETHEUS_EOF
+EOF
 
 # 告警规则
-cat > prometheus/rules/node_rules.yml << 'RULES_EOF'
+cat > prometheus/rules/node_rules.yml <<EOF
 groups:
 - name: node.rules
   rules:
@@ -182,20 +182,20 @@ groups:
       severity: critical
     annotations:
       summary: "Host {{ \$labels.instance }} is down"
-RULES_EOF
+EOF
 
 # Alertmanager 配置
-cat > alertmanager/alertmanager.yml << 'ALERTMANAGER_EOF'
+cat > alertmanager/alertmanager.yml <<EOF
 global:
   resolve_timeout: 5m
 route:
   receiver: 'default'
 receivers:
 - name: 'default'
-ALERTMANAGER_EOF
+EOF
 
 # Grafana Datasource (自动配置)
-cat > grafana/provisioning/datasources/datasource.yml << 'DATASOURCE_EOF'
+cat > grafana/provisioning/datasources/datasource.yml <<EOF
 apiVersion: 1
 datasources:
 - name: Prometheus
@@ -203,7 +203,7 @@ datasources:
   access: proxy
   url: http://prometheus:9090
   isDefault: true
-DATASOURCE_EOF
+EOF
 
 # ===== 4) 启动监控栈 =====
 configure_firewall() {
@@ -229,11 +229,11 @@ sleep 15
 
 # ===== 5) 目标管理 (IP列表) =====
 if [[ ! -f "../${IPS_FILE}" ]]; then
-    cat > "../${IPS_FILE}" << 'IPS_EOF'
+    cat > "../${IPS_FILE}" <<EOF
 # 格式: IP地址 [可选注释]
 # 192.168.1.100
 # 192.168.1.101
-IPS_EOF
+EOF
     echo "ℹ️  已创建示例IP文件: ../${IPS_FILE}"
     IPS_FILE="../${IPS_FILE}"
 else
@@ -266,7 +266,7 @@ generate_targets
 
 # 生成安装脚本 (不依赖 sed，直接生成)
 generate_remote_installer() {
-    cat > /tmp/install_ne.sh << 'INSTALLER_EOF'
+    cat > /tmp/install_ne.sh <<EOF
 #!/bin/bash
 set -e
 
@@ -302,7 +302,7 @@ echo ">>> 安装二进制文件..."
 \$SUDO chown root:root /usr/local/bin/node_exporter
 
 echo ">>> 配置 Systemd 服务..."
-cat << SERVICE_EOF | \$SUDO tee /etc/systemd/system/node_exporter.service > /dev/null
+cat <<SERVICE | \$SUDO tee /etc/systemd/system/node_exporter.service > /dev/null
 [Unit]
 Description=Node Exporter
 After=network.target
@@ -314,7 +314,7 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-SERVICE_EOF
+SERVICE
 
 echo ">>> 启动服务..."
 \$SUDO systemctl daemon-reload
@@ -329,7 +329,7 @@ elif command -v firewall-cmd >/dev/null; then
 fi
 
 echo ">>> 安装完成"
-INSTALLER_EOF
+EOF
 }
 
 install_remote() {
@@ -378,18 +378,14 @@ fi
 # 改进的 IP 获取逻辑: 优先获取路由到外网的接口 IP，避开 Docker 网桥
 HOST_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}') || HOST_IP=$(hostname -I | awk '{print $1}')
 
-cat << 'INFO_EOF'
+cat <<EOF
 
 🎉🎉🎉 部署完成! 🎉🎉🎉
 
 📊 访问面板:
-   Grafana:      http://${HOST_IP}:3000  (账号: admin / 密码: 已通过环境变量设置)
+   Grafana:      http://${HOST_IP}:3000  (账号: admin / 密码: ${GRAFANA_ADMIN_PASSWORD})
    Prometheus:   http://${HOST_IP}:9090
    Alertmanager: http://${HOST_IP}:9093
-
-🔐 安全提示:
-   您的 Grafana 密码已通过环境变量设置，不在脚本中硬编码
-   请妥善保管 GRAFANA_ADMIN_PASSWORD 环境变量
 
 📝 后续操作:
    1. 登录 Grafana
@@ -403,4 +399,4 @@ cat << 'INFO_EOF'
    查看日志: docker compose logs -f
    停止服务: docker compose down
 
-INFO_EOF
+EOF
