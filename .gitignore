@@ -81,3 +81,24 @@ coverage.xml
 # gemini-config.json
 # config.yaml
 .github/workflows/backup/
+
+# 环境文件和密码
+.env
+*.env.local
+secrets/
+passwords.txt
+credentials/
+
+# 监控堆栈数据
+monitor-stack/
+
+# 环境文件和密码
+.env
+*.env.*
+secrets/
+credentials/
+passwords.txt
+
+# 监控堆栈数据
+monitor-stack/
+monitor-stack.backup.*
