@@ -37,9 +37,7 @@ def analyze_python_code(content):
 
         functions = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
         classes = [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
-        imports = [
-            n for n in ast.walk(tree) if isinstance(n, (ast.Import, ast.ImportFrom))
-        ]
+        imports = [n for n in ast.walk(tree) if isinstance(n, (ast.Import, ast.ImportFrom))]
 
         analysis.append(f"  函数数量: {len(functions)}")
         analysis.append(f"  类数量: {len(classes)}")
@@ -77,9 +75,7 @@ def analyze_general_code(content):
 
     # 基础统计
     analysis.append(f"  行数: {len(lines)}")
-    analysis.append(
-        f"  非空行: {len([line_length for line_length in lines if line_length.strip()])}"
-    )
+    analysis.append(f"  非空行: {len([line_length for line_length in lines if line_length.strip()])}")
     analysis.append(f"  字符数: {len(content)}")
 
     return analysis
@@ -246,9 +242,7 @@ def main():
         print(f"📁 文件总数: {len(code_files)}")
         print(f"📏 总行数: {total_lines}")
         print(f"💾 总大小: {total_size} bytes")
-        print(
-            f"📊 平均大小: {total_size // len(code_files) if code_files else 0} bytes"
-        )
+        print(f"📊 平均大小: {total_size // len(code_files) if code_files else 0} bytes")
 
         print("\n🌐 语言分布:")
         for lang, count in sorted(language_count.items()):

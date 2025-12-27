@@ -66,9 +66,7 @@ def analyze_python_code(file_path, content):
                 class_info = {
                     "name": node.name,
                     "lineno": node.lineno,
-                    "methods": len(
-                        [n for n in node.body if isinstance(n, ast.FunctionDef)]
-                    ),
+                    "methods": len([n for n in node.body if isinstance(n, ast.FunctionDef)]),
                 }
                 analysis["classes"].append(class_info)
 
@@ -105,9 +103,7 @@ def analyze_javascript_code(file_path, content):
     analysis["classes"] = re.findall(r"class\s+(\w+)\s*{", content)
     analysis["arrow_functions"] = len(re.findall(r"(\w+)\s*=>\s*{", content))
     analysis["imports"] = len(re.findall(r"import\s+.*from", content))
-    analysis["exports"] = len(
-        re.findall(r"export\s+(default\s+)?(function|class|const|let)", content)
-    )
+    analysis["exports"] = len(re.findall(r"export\s+(default\s+)?(function|class|const|let)", content))
 
     return analysis
 
@@ -180,8 +176,7 @@ def find_code_files(directory="."):
     files = [
         f
         for f in sorted(set(files))
-        if not any(part.startswith(".") for part in Path(f).parts)
-        and not any(part.startswith("__") for part in Path(f).parts)
+        if not any(part.startswith(".") for part in Path(f).parts) and not any(part.startswith("__") for part in Path(f).parts)
     ]
 
     return files
@@ -235,17 +230,13 @@ def generate_report(files_data):
     # 语言统计摘要
     print("\n=== 语言统计摘要 ===")
     for lang, stats in sorted(language_stats.items()):
-        print(
-            f"  {lang}: {stats['count']} 文件, {stats['lines']} 行, {stats['size']} bytes"
-        )
+        print(f"  {lang}: {stats['count']} 文件, {stats['lines']} 行, {stats['size']} bytes")
 
     print("\n=== 总体统计 ===")
     print(f"📈 总文件数: {total_files}")
     print(f"📈 总代码行数: {total_lines}")
     print(f"📈 总大小: {total_size} bytes")
-    print(
-        f"📈 平均文件大小: {total_size // total_files if total_files > 0 else 0} bytes"
-    )
+    print(f"📈 平均文件大小: {total_size // total_files if total_files > 0 else 0} bytes")
 
 
 def main():

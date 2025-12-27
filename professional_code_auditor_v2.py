@@ -480,9 +480,7 @@ class OnlineServiceClient:
     """在线服务客户端"""
 
     @staticmethod
-    def scan_with_vuln_db(
-        file_content: str, file_type: str
-    ) -> Tuple[List[str], List[str]]:
+    def scan_with_vuln_db(file_content: str, file_type: str) -> Tuple[List[str], List[str]]:
         """使用在线漏洞库扫描（免费）"""
         issues = []
         warnings = []
@@ -513,9 +511,7 @@ class OnlineServiceClient:
         return issues, warnings
 
     @staticmethod
-    def scan_with_ai(
-        file_content: str, file_type: str, api_key: Optional[str] = None
-    ) -> Tuple[List[str], List[str]]:
+    def scan_with_ai(file_content: str, file_type: str, api_key: Optional[str] = None) -> Tuple[List[str], List[str]]:
         """使用AI分析扫描（隐私保护）"""
         issues = []
         warnings = []
@@ -626,9 +622,7 @@ class ProfessionalCodeAuditor:
         print(f"{Colors.YELLOW}q.{Colors.ENDC} 退出程序")
 
         while True:
-            choice = input(
-                f"\n{Colors.BOLD}请选择 [1 / 2/3 / q]: {Colors.ENDC}"
-            ).strip()
+            choice = input(f"\n{Colors.BOLD}请选择 [1 / 2/3 / q]: {Colors.ENDC}").strip()
 
             if choice.lower() == "q":
                 print(f"{Colors.BLUE}👋 再见！{Colors.ENDC}")
@@ -641,9 +635,7 @@ class ProfessionalCodeAuditor:
 
             elif choice == "2":
                 print(f"\n{Colors.CYAN}请粘贴要分析的文件夹完整路径:{Colors.ENDC}")
-                path_input = (
-                    input(f"{Colors.BOLD}> {Colors.ENDC}").strip().strip('"').strip("'")
-                )
+                path_input = input(f"{Colors.BOLD}> {Colors.ENDC}").strip().strip('"').strip("'")
 
                 if os.path.isdir(path_input):
                     self.target_dir = os.path.abspath(path_input)
@@ -674,17 +666,11 @@ class ProfessionalCodeAuditor:
         print(f"\n{Colors.BOLD}🔧 步骤2: 选择分析模式{Colors.ENDC}")
         print(f"{Colors.YELLOW}1.{Colors.ENDC} 🚀 离线分析模式 (本地全面扫描)")
         print(f"{Colors.YELLOW}2.{Colors.ENDC} ☁️  在线模式 (免费云端漏洞库)")
-        print(
-            f"{Colors.YELLOW}3.{Colors.ENDC} 🤖 在线 + AI分析模式 (智能AI分析 + 隐私保护)"
-        )
+        print(f"{Colors.YELLOW}3.{Colors.ENDC} 🤖 在线 + AI分析模式 (智能AI分析 + 隐私保护)")
         print(f"{Colors.YELLOW}q.{Colors.ENDC} 🚪 退出程序")
 
         while True:
-            choice = (
-                input(f"\n{Colors.BOLD}请选择模式 [1 / 2/3 / q]: {Colors.ENDC}")
-                .strip()
-                .lower()
-            )
+            choice = input(f"\n{Colors.BOLD}请选择模式 [1 / 2/3 / q]: {Colors.ENDC}").strip().lower()
 
             if choice == "q":
                 print(f"{Colors.BLUE}👋 再见！{Colors.ENDC}")
@@ -718,11 +704,7 @@ class ProfessionalCodeAuditor:
         print("  2. 🛡️  发送到服务器的内容经过隐私清理")
         print("  3. 📊 仅用于改进分析质量")
 
-        use_ai = (
-            input(f"\n{Colors.BOLD}是否使用AI分析？[y / n] (默认: n): {Colors.ENDC}")
-            .strip()
-            .lower()
-        )
+        use_ai = input(f"\n{Colors.BOLD}是否使用AI分析？[y / n] (默认: n): {Colors.ENDC}").strip().lower()
 
         if use_ai == "y":
             api_key = input(f"{Colors.BOLD}请输入AI API密钥: {Colors.ENDC}").strip()
@@ -803,9 +785,7 @@ class ProfessionalCodeAuditor:
                 else:
                     self.file_stats["skipped_files"] += 1
 
-        print(
-            f"{Colors.GREEN}📊 扫描完成! 发现 {len(all_files)} 个可分析文件{Colors.ENDC}"
-        )
+        print(f"{Colors.GREEN}📊 扫描完成! 发现 {len(all_files)} 个可分析文件{Colors.ENDC}")
         return all_files
 
     def _update_file_stats(self, file_type):
@@ -820,9 +800,7 @@ class ProfessionalCodeAuditor:
         if file_type in stats_map:
             self.file_stats[stats_map[file_type]] += 1
 
-    def analyze_file(
-        self, file_info: Dict, content: str
-    ) -> Tuple[List[str], List[str]]:
+    def analyze_file(self, file_info: Dict, content: str) -> Tuple[List[str], List[str]]:
         """分析单个文件"""
         issues = []
         warnings = []
@@ -838,17 +816,13 @@ class ProfessionalCodeAuditor:
         # 根据模式进行额外分析
         if self.scan_mode == "online":
             # 在线漏洞库分析
-            online_issues, online_warnings = OnlineServiceClient.scan_with_vuln_db(
-                content, file_info["type"]
-            )
+            online_issues, online_warnings = OnlineServiceClient.scan_with_vuln_db(content, file_info["type"])
             issues.extend(online_issues)
             warnings.extend(online_warnings)
 
         elif self.scan_mode == "online_ai":
             # AI分析
-            ai_issues, ai_warnings = OnlineServiceClient.scan_with_ai(
-                content, file_info["type"], self.ai_api_key
-            )
+            ai_issues, ai_warnings = OnlineServiceClient.scan_with_ai(content, file_info["type"], self.ai_api_key)
             issues.extend(ai_issues)
             warnings.extend(ai_warnings)
             self.file_stats["ai_insights"] += len(ai_issues) + len(ai_warnings)
@@ -900,9 +874,7 @@ class ProfessionalCodeAuditor:
             "online_ai": "在线 + AI分析模式",
         }
 
-        print(
-            f"\n{Colors.HEADER}🚀 启动模式: {mode_names.get(self.scan_mode, self.scan_mode)}{Colors.ENDC}"
-        )
+        print(f"\n{Colors.HEADER}🚀 启动模式: {mode_names.get(self.scan_mode, self.scan_mode)}{Colors.ENDC}")
 
         if self.scan_mode in ["online", "online_ai"]:
             print(f"{Colors.CYAN}🌐 正在连接云端服务...{Colors.ENDC}")
@@ -938,9 +910,7 @@ class ProfessionalCodeAuditor:
             else:
                 # 读取内容
                 try:
-                    with open(
-                        file_info["full_path"], "r", encoding="utf - 8", errors="ignore"
-                    ) as f:
+                    with open(file_info["full_path"], "r", encoding="utf - 8", errors="ignore") as f:
                         content = f.read()
                 except Exception:
                     content = ""
@@ -949,9 +919,7 @@ class ProfessionalCodeAuditor:
 
                 # 分析文件
                 issues, warnings = self.analyze_file(file_info, content)
-                score = self.calculate_file_score(
-                    file_info["type"], len(issues), len(warnings)
-                )
+                score = self.calculate_file_score(file_info["type"], len(issues), len(warnings))
                 status = "pass" if score >= 75 else "warning" if score >= 60 else "fail"
                 output = self._format_output(issues, warnings)
 
@@ -975,9 +943,7 @@ class ProfessionalCodeAuditor:
             time.sleep(0.01)
 
         self.scan_duration = time.time() - self.start_time
-        print(
-            f"\n{Colors.GREEN}✅ 分析完成！耗时: {self.scan_duration:.2f}秒{Colors.ENDC}"
-        )
+        print(f"\n{Colors.GREEN}✅ 分析完成！耗时: {self.scan_duration:.2f}秒{Colors.ENDC}")
 
     def _format_output(self, issues: List[str], warnings: List[str]) -> str:
         """格式化输出"""
@@ -1048,9 +1014,7 @@ class ProfessionalCodeAuditor:
 
         # 保存文件
         timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_file = os.path.join(
-            os.getcwd(), f"Code_Audit_Report_{timestamp_str}.html"
-        )
+        self.output_file = os.path.join(os.getcwd(), f"Code_Audit_Report_{timestamp_str}.html")
 
         with open(self.output_file, "w", encoding="utf - 8") as f:
             f.write(html_content)
@@ -1306,9 +1270,7 @@ class ProfessionalCodeAuditor:
         # 二进制文件警告
         binary_files = [r for r in self.results if r.get("binary_warning")]
         if binary_files:
-            print(
-                f"\n{Colors.RED}⚠️  发现 {len(binary_files)} 个二进制文件{Colors.ENDC}"
-            )
+            print(f"\n{Colors.RED}⚠️  发现 {len(binary_files)} 个二进制文件{Colors.ENDC}")
 
 
 # ==================== 主程序 ====================
